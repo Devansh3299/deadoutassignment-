@@ -1,0 +1,51 @@
+const express = require('express');
+const fs = require('fs');
+const readline = require('readline');
+const path = require('path');
+
+const app = express();
+const port = 8080;
+
+app.get('/data', (req, res) => {
+  const { n, m } = req.query;
+
+  if (!n) {
+    return res.status(400).send('Query parameter "n" is required.');
+  }
+
+  const filePath = path.join('/tmp/data/', `${n}.txt`);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send(`File ${n}.txt not found.`);
+  }
+
+  if (m) {
+    const lineReader = readline.createInterface({
+      input: fs.createReadStream(filePath),
+    });
+
+    let lineNumber = 0;
+
+    lineReader.on('line', (line) => {
+      lineNumber += 1;
+
+      if (lineNumber == m) {
+        lineReader.close();
+        res.send(line);
+      }
+    });
+
+    lineReader.on('close', () => {
+      if (lineNumber < m) {
+        res.status(404).send(`Line ${m} not found in file ${n}.txt.`);
+      }
+    });
+  } else {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    res.send(fileContent);
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});
