@@ -1,2 +1,2 @@
 # deadoutassignment-
-This is my coding assessment i deadouts
+This is my coding assessment deadouts
